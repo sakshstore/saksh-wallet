@@ -3,19 +3,13 @@
 
 ## Features
 
-•   **Credit**   Add funds to a user's wallet.
-
-•   **Debit**   Withdraw funds from a user's wallet.
-
-•   **Convert Currency** : Convert funds from one currency to another.
-
-•   **Get Balance** : Retrieve the balance of a specific currency for a user.
-
-•   **Transaction Report** : Get a report of all transactions for a user.
-
-•   **Reverse Transaction** : Reverse a specific transaction.
-
-•   **Reverse Multiple Transactions** : Reverse multiple transactions in a single operation.
+-   **Credit**   Add funds to a user's wallet.
+-   **Debit**   Withdraw funds from a user's wallet.
+-   **Convert Currency** : Convert funds from one currency to another.
+-   **Get Balance** : Retrieve the balance of a specific currency for a user.
+-   **Transaction Report** : Get a report of all transactions for a user.
+-   **Reverse Transaction** : Reverse a specific transaction.
+-   **Reverse Multiple Transactions** : Reverse multiple transactions in a single operation.
 
 
 
@@ -29,39 +23,29 @@ npm install saksh-wallet
  
 
 ### API
-#### credit(userId, amount, currency, description, referenceNumber)
-Credits an amount to the user's wallet.
+``` credit(userId, amount, currency, description, referenceNumber) ```
+- Credits an amount to the user's wallet.
 
 •  Parameters:
 
-•  userId (string): The ID of the user.
-
-•  amount (number): The amount to credit.
-
-•  currency (string): The currency of the amount.
-
-•  description (string): Description of the transaction.
-
-•  referenceNumber (string): Reference number for the transaction.
-
-•  Returns: The new balance of the user in the specified currency.
+- userId (string): The ID of the user.
+- amount (number): The amount to credit.
+- currency (string): The currency of the amount.
+- description (string): Description of the transaction.
+- referenceNumber (string): Reference number for the transaction.
+- Returns: The new balance of the user in the specified currency.
 
 #### debit(userId, amount, currency, description, referenceNumber)
 Debits an amount from the user's wallet.
 
 •  Parameters:
 
-•  userId (string): The ID of the user.
-
-•  amount (number): The amount to debit.
-
-•  currency (string): The currency of the amount.
-
-•  description (string): Description of the transaction.
-
-•  referenceNumber (string): Reference number for the transaction.
-
-•  Returns: The new balance of the user in the specified currency.
+- userId (string): The ID of the user.
+- amount (number): The amount to debit.
+- currency (string): The currency of the amount.
+- description (string): Description of the transaction.
+- referenceNumber (string): Reference number for the transaction.
+- Returns: The new balance of the user in the specified currency.
 
 
 #### convertCurrency(userId, fromCurrency, toCurrency, amount)
@@ -70,54 +54,44 @@ Converts currency in the user's wallet.
 
 •  Parameters:
 
-•  userId (string): The ID of the user.
-
-•  fromCurrency (string): The currency to convert from.
-
-•  toCurrency (string): The currency to convert to.
-
-•  amount (number): The amount to convert.
-
-•  Returns: The new balances of the user in both currencies.
+- userId (string): The ID of the user.
+- fromCurrency (string): The currency to convert from.
+- toCurrency (string): The currency to convert to.
+- amount (number): The amount to convert.
+- Returns: The new balances of the user in both currencies.
 
 #### getBalance(userId, currency)
 Gets the balance of the user in a specific currency.
 
 •  Parameters:
 
-•  userId (string): The ID of the user.
-
-•  currency (string): The currency to get the balance of.
-
-•  Returns: The balance of the user in the specified currency.
+- userId (string): The ID of the user.
+- currency (string): The currency to get the balance of.
+- Returns: The balance of the user in the specified currency.
 
 #### getTransactionReport(userId)
 Gets the transaction report of the user.
 
 •  Parameters:
 
-•  userId (string): The ID of the user.
-
-•  Returns: The list of transactions of the user.
+- userId (string): The ID of the user.
+- Returns: The list of transactions of the user.
 
 #### reverseTransaction(transactionId, session)
 Reverses a transaction.
 
 •  Parameters:
-•  transactionId (string): The ID of the transaction to reverse.
+- transactionId (string): The ID of the transaction to reverse.
+- session (Object): The mongoose session.
 
-•  session (Object): The mongoose session.
-
-•  Returns: The reversed transaction.
+-  Returns: The reversed transaction.
 
 #### reverseMultipleTransactions(transactionIds)
 Reverses multiple transactions.
 
-•  Parameters:
-
-•  transactionIds (Array<string>): The IDs of the transactions to reverse.
-
-•  Returns: The list of reversed transactions.
+-  Parameters:
+- transactionIds (Array<string>): The IDs of the transactions to reverse.
+- Returns: The list of reversed transactions.
 
 
 ### example
@@ -131,7 +105,7 @@ const { Wallet, WalletUser } = require(saksh-wallet);
 
 require('dotenv').config();
 
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
+mongoose.connect(process.env.MONGODB_URI );
 
 async function main() {
 
