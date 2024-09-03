@@ -1,0 +1,46 @@
+{
+  "name": "saksh-wallet",
+  "version": "2.0.0",
+  "description": "A Node.js library for managing user wallets, including functionalities for crediting, debiting, and converting currencies, as well as retrieving balances and transaction reports.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "run-scheduler": "node scripts/recurringPaymentsScheduler.js"
+  },
+  "author": {
+    "name": "susheelhbti"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "dotenv": "^16.0.0",
+    "events": "^3.3.0",
+    "mongoose": "^6.0.0",
+    "node-cron": "^2.0.3"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sakshstore/saksh-wallet.git"
+  },
+  "homepage": "https://github.com/sakshstore/saksh-wallet#readme",
+  "bugs": {
+    "url": "https://github.com/sakshstore/saksh-wallet/issues"
+  },
+  "keywords": [
+    "wallet",
+    "finance",
+    "transactions",
+    "currency",
+    "money",
+    "payment",
+    "credit",
+    "debit",
+    "currency conversion",
+    "transaction management",
+    "financial services",
+    "digital wallet",
+    "mongoose",
+    "event emitter",
+    "nodejs",
+    "npm package"
+  ]
+}
