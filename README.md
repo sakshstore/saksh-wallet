@@ -6,7 +6,9 @@
 •   **Credit**   Add funds to a user's wallet.
 
 •   **Debit**   Withdraw funds from a user's wallet.
- 
+
+•   **Convert Currency** : Convert funds from one currency to another.
+
 •   **Get Balance** : Retrieve the balance of a specific currency for a user.
 
 •   **Transaction Report** : Get a report of all transactions for a user.
@@ -25,249 +27,287 @@ Install the package via npm:
 npm install saksh-wallet
 ```
  
- 
+
+### API
+#### credit(userId, amount, currency, description, referenceNumber)
+Credits an amount to the user's wallet.
+
+•  Parameters:
+
+•  userId (string): The ID of the user.
+
+•  amount (number): The amount to credit.
+
+•  currency (string): The currency of the amount.
+
+•  description (string): Description of the transaction.
+
+•  referenceNumber (string): Reference number for the transaction.
+
+•  Returns: The new balance of the user in the specified currency.
+
+#### debit(userId, amount, currency, description, referenceNumber)
+Debits an amount from the user's wallet.
+
+•  Parameters:
+
+•  userId (string): The ID of the user.
+
+•  amount (number): The amount to debit.
+
+•  currency (string): The currency of the amount.
+
+•  description (string): Description of the transaction.
+
+•  referenceNumber (string): Reference number for the transaction.
+
+•  Returns: The new balance of the user in the specified currency.
+
+
+#### convertCurrency(userId, fromCurrency, toCurrency, amount)
+
+Converts currency in the user's wallet.
+
+•  Parameters:
+
+•  userId (string): The ID of the user.
+
+•  fromCurrency (string): The currency to convert from.
+
+•  toCurrency (string): The currency to convert to.
+
+•  amount (number): The amount to convert.
+
+•  Returns: The new balances of the user in both currencies.
+
+#### getBalance(userId, currency)
+Gets the balance of the user in a specific currency.
+
+•  Parameters:
+
+•  userId (string): The ID of the user.
+
+•  currency (string): The currency to get the balance of.
+
+•  Returns: The balance of the user in the specified currency.
+
+#### getTransactionReport(userId)
+Gets the transaction report of the user.
+
+•  Parameters:
+
+•  userId (string): The ID of the user.
+
+•  Returns: The list of transactions of the user.
+
+#### reverseTransaction(transactionId, session)
+Reverses a transaction.
+
+•  Parameters:
+•  transactionId (string): The ID of the transaction to reverse.
+
+•  session (Object): The mongoose session.
+
+•  Returns: The reversed transaction.
+
+#### reverseMultipleTransactions(transactionIds)
+Reverses multiple transactions.
+
+•  Parameters:
+
+•  transactionIds (Array<string>): The IDs of the transactions to reverse.
+
+•  Returns: The list of reversed transactions.
 
 
 
- Here's the updated `README.md` file with the package name set to `saksh-wallet` and the license specified as MIT:
 
-```markdown
-# Saksh Wallet Management System
 
-A simple wallet management system built with Node.js and MongoDB. This package provides functionalities for managing user wallets, transactions, and recurring payments.
+### Running the Scheduler
+To run the recurring payments scheduler, use the following command:
 
-## Features
+``` npm run run-scheduler ```
 
-- Create and manage user wallets
-- Credit and debit transactions
-- Transfer funds between users
-- Set daily transaction limits
-- Generate transaction reports
-- Support for recurring payments
 
-## Installation
+The Saksh Wallet provides several functions for managing recurring payments and fund transfers. Here’s a summary of each function along with its parameters, return values, and examples:
 
-To install the package, run:
+### 1. **sakshCreateRecurringPayment**
+- **Description**: Creates a new recurring payment.
+- **Parameters**:
+  - `userId` (String): The ID of the user making the payment.
+  - `toUserId` (String): The ID of the user receiving the payment.
+  - `amount` (Number): The amount to be transferred.
+  - `currency` (String): The currency of the transaction.
+  - `description` (String): A description of the payment.
+  - `referenceNumber` (String): A reference number for the transaction.
+  - `interval` (String): The interval for the recurring payment (daily, weekly, monthly).
+  - `feeCallback` (Function, optional): A custom callback function to calculate the fee.
+- **Returns**: The created recurring payment object.
+- **Example**:
+  ```javascript
+  const recurringPayment = await wallet.sakshCreateRecurringPayment(
+    'user1',
+    'user2',
+    100,
+    'USD',
+    'Monthly subscription',
+    'REF12345',
+    'monthly'
+  );
+  ```
 
-```bash
-npm install saksh-wallet
+### 2. **sakshUpdateRecurringPayment**
+- **Description**: Updates an existing recurring payment.
+- **Parameters**:
+  - `paymentId` (String): The ID of the recurring payment to update.
+  - `updates` (Object): An object containing the updates.
+- **Returns**: The updated recurring payment object.
+- **Example**:
+  ```javascript
+  const updatedPayment = await wallet.sakshUpdateRecurringPayment('paymentId123', { amount: 150 });
+  ```
+
+### 3. **sakshDeleteRecurringPayment**
+- **Description**: Deletes an existing recurring payment.
+- **Parameters**:
+  - `paymentId` (String): The ID of the recurring payment to delete.
+- **Returns**: None.
+- **Example**:
+  ```javascript
+  await wallet.sakshDeleteRecurringPayment('paymentId123');
+  ```
+
+### 4. **sakshCalculateNextPaymentDate**
+- **Description**: Calculates the next payment date based on the interval.
+- **Parameters**:
+  - `interval` (String): The interval for the recurring payment (daily, weekly, monthly).
+- **Returns**: The next payment date (Date).
+- **Example**:
+  ```javascript
+  const nextPaymentDate = wallet.sakshCalculateNextPaymentDate('monthly');
+  ```
+
+### 5. **sakshTransferFunds**
+- **Description**: Transfers funds from one user to another, including a fee.
+- **Parameters**:
+  - `fromUserId` (String): The ID of the user sending the funds.
+  - `toUserId` (String): The ID of the user receiving the funds.
+  - `amount` (Number): The amount to be transferred.
+  - `currency` (String): The currency of the transaction.
+  - `description` (String): A description of the transaction.
+  - `referenceNumber` (String): A reference number for the transaction.
+  - `customFeeCallback` (Function, optional): A custom callback function to calculate the fee.
+- **Returns**: An object containing the details of the transfer.
+- **Example**:
+  ```javascript
+  const transferResult = await wallet.sakshTransferFunds(
+    'user1',
+    'user2',
+    200,
+    'USD',
+    'Payment for services',
+    'REF12345',
+    (amount) => amount <= 100 ? 1.0 : (amount * 1.5) / 100
+  );
+  ```
+
+### 6. **sakshCalculateFee**
+- **Description**: Calculates the fee for a transaction.
+- **Parameters**:
+  - `amount` (Number): The amount of the transaction.
+  - `customFeeCallback` (Function, optional): A custom callback function to calculate the fee.
+- **Returns**: The calculated fee (Number).
+- **Example**:
+  ```javascript
+  const fee = wallet.sakshCalculateFee(200, (amount) => amount <= 100 ? 1.0 : (amount * 1.5) / 100);
+  ```
+
+These functions provide a comprehensive set of tools for managing payments and fees within the Saksh Wallet system.
+
+
+
+
+### example
+
+
 ```
-
-## Usage
-
-First, require the package and set up your MongoDB connection:
-
-```javascript
 const mongoose = require('mongoose');
-const { Wallet } = require('saksh-wallet');
 
-// Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/your-database', { useNewUrlParser: true, useUnifiedTopology: true });
+//const { Wallet, WalletUser } = require('./index');
+const { Wallet, WalletUser } = require(saksh-wallet);
 
-// Create an instance of the Wallet class
-const wallet = new Wallet();
-```
+require('dotenv').config();
 
-### API Methods
+mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true });
 
-#### 1. `sakshSetAdmin(adminUserId)`
+async function main() {
 
-Sets the admin user ID.
-
-```javascript
-await wallet.sakshSetAdmin('newAdminUserId');
-```
-
-#### 2. `sakshSetLimit(nolimit)`
-
-Sets whether the daily limit is applied.
-
-```javascript
-await wallet.sakshSetLimit(true); // No limit
-```
-
-#### 3. `sakshUpdateBalance(userId, amount, currency, type, description, referenceNumber)`
-
-Updates the balance of a user. The `type` can be either `'credit'` or `'debit'`.
-
-```javascript
-await wallet.sakshUpdateBalance('userId', 100, 'USD', 'credit', 'Deposit', 'REF123');
-```
-
-#### 4. `sakshTransferFunds(fromUserId, toUserId, amount, currency, description, referenceNumber, customFeeCallback)`
-
-Transfers funds from one user to another.
-
-```javascript
-await wallet.sakshTransferFunds('userId1', 'userId2', 50, 'USD', 'Payment for services', 'REF456');
-```
-
-#### 5. `sakshGetBalance(userId, currency)`
-
-Gets the balance of a user in a specific currency.
-
-```javascript
-const balance = await wallet.sakshGetBalance('userId', 'USD');
-console.log(balance);
-```
-
-#### 6. `sakshGetTransactionReport(userId)`
-
-Retrieves all transactions for a user.
-
-```javascript
-const transactions = await wallet.sakshGetTransactionReport('userId');
-console.log(transactions);
-```
-
-#### 7. `sakshCreateRecurringPayment(userId, toUserId, amount, currency, description, referenceNumber, interval, feeCallback)`
-
-Creates a recurring payment.
-
-```javascript
-await wallet.sakshCreateRecurringPayment('userId', 'toUserId', 20, 'USD', 'Monthly Subscription', 'REF789', 'monthly');
-```
-
-#### 8. `sakshReverseTransaction(transactionId)`
-
-Reverses a transaction by its ID.
-
-```javascript
-await wallet.sakshReverseTransaction('transactionId');
-```
-
-## Events
-
-The `Wallet` class emits the following events:
-
-- `transaction`: Emitted when a transaction occurs.
-- `transfer`: Emitted when funds are transferred between users.
-
-
-
-
-
-Here's a complete `example.js` file that demonstrates how to use the `Wallet` class from the `saksh-wallet` package. This example includes setting up the MongoDB connection, creating users, performing transactions, and generating reports.
-
-```javascript
-// example.js
-
-const mongoose = require('mongoose');
-const { Wallet } = require('saksh-wallet');
-
-// Connect to MongoDB
-mongoose.connect('mongodb://localhost:27017/saksh_wallet', { useNewUrlParser: true, useUnifiedTopology: true })
-    .then(() => {
-        console.log('MongoDB connected successfully');
-    })
-    .catch(err => {
-        console.error('MongoDB connection error:', err);
-    });
-
-// Create an instance of the Wallet class
-const wallet = new Wallet();
-
-// Example usage
-async function runExample() {
     try {
-        // Set admin user ID
-        await wallet.sakshSetAdmin('adminUserId');
+        const user = new WalletUser({
+            userId: 'user123',
+            balances: new Map(),
+            dailyTotal: 0,
+            dailyLimit: 1000,
+            lastTransactionDate: new Date()
+        });
 
-        // Create users
-        const userId1 = 'user1';
-        const userId2 = 'user2';
+        await user.save();
 
-        // Credit user1
-        await wallet.sakshCredit(userId1, 100, 'USD', 'Initial deposit', 'REF001');
-        console.log(`User ${userId1} credited with 100 USD`);
+        console.log('User created:', user);
+    } catch (error) {
+        console.error('Error:', error);
 
-        // Debit user1
-        await wallet.sakshDebit(userId1, 30, 'USD', 'Purchase', 'REF002');
-        console.log(`User ${userId1} debited 30 USD`);
+    }
 
-        // Transfer funds from user1 to user2
-        await wallet.sakshTransferFunds(userId1, userId2, 50, 'USD', 'Payment for services', 'REF003');
-        console.log(`Transferred 50 USD from ${userId1} to ${userId2}`);
 
-        // Get balance for user1 and user2
-        const balanceUser1 = await wallet.sakshGetBalance(userId1, 'USD');
-        const balanceUser2 = await wallet.sakshGetBalance(userId2, 'USD');
-        console.log(`Balance for ${userId1}: ${balanceUser1} USD`);
-        console.log(`Balance for ${userId2}: ${balanceUser2} USD`);
+    try {
 
-        // Get transaction report for user1
-        const transactionsUser1 = await wallet.sakshGetTransactionReport(userId1);
-        console.log(`Transactions for ${userId1}:`, transactionsUser1);
+        const wallet = new Wallet();
 
-        // Create a recurring payment
-        const recurringPayment = await wallet.sakshCreateRecurringPayment(userId1, userId2, 10, 'USD', 'Weekly Subscription', 'REF004', 'weekly');
-        console.log(`Created recurring payment:`, recurringPayment);
 
-        // Reverse a transaction (example with the first transaction ID)
-        if (transactionsUser1.length > 0) {
-            const transactionId = transactionsUser1[0]._id;
-            await wallet.sakshReverseTransaction(transactionId);
-            console.log(`Reversed transaction with ID: ${transactionId}`);
-        }
+        // Example: Credit a user
+        const newBalance = await wallet.credit('user123', 100, 'USD', 'Initial deposit', 'REF123');
+        console.log('New Balance:', newBalance);
+
+        // Example: Debit a user
+        const updatedBalance = await wallet.debit('user123', 50, 'USD', 'Purchase', 'REF124');
+        console.log('Updated Balance:', updatedBalance);
+
+        // Example: Get balance
+        const balance = await wallet.getBalance('user123', 'USD');
+        console.log('Balance:', balance);
+
+        // Example: Get transaction report
+        const transactions = await wallet.getTransactionReport('user123');
+        console.log('Transactions:', transactions);
+
+
+
+        
+
+
+
+        wallet.transferFunds('user1', 'user2', 200, 'USD', 'Payment for services', 'REF12345', customFeeCallback)
+            .then(result => console.log('Transfer successful:', result))
+            .catch(error => console.error('Transfer failed:', error));
+
+
+
+
 
     } catch (error) {
         console.error('Error:', error);
     } finally {
-        // Close the MongoDB connection
         mongoose.connection.close();
     }
 }
 
-// Run the example
-runExample();
+main();
+
+
 ```
-
-### Explanation of the Example:
-
-1. **MongoDB Connection**: The script connects to a MongoDB database named `saksh_wallet`. Make sure to have MongoDB running and accessible.
-
-2. **Creating an Instance**: An instance of the `Wallet` class is created.
-
-3. **Setting Admin User**: The admin user ID is set.
-
-4. **User Operations**:
-   - Two users (`user1` and `user2`) are created.
-   - `user1` is credited with an initial deposit of 100 USD.
-   - A debit transaction of 30 USD is performed on `user1`.
-   - A transfer of 50 USD is made from `user1` to `user2`.
-
-5. **Balance Check**: The balances of both users are retrieved and logged.
-
-6. **Transaction Report**: A transaction report for `user1` is generated and logged.
-
-7. **Recurring Payment**: A recurring payment is created from `user1` to `user2`.
-
-8. **Transaction Reversal**: The script attempts to reverse the first transaction in `user1`'s transaction report.
-
-9. **Error Handling**: Errors are caught and logged.
-
-10. **Closing Connection**: The MongoDB connection is closed at the end of the script.
-
-### Usage
-To run the example, save the code in a file named `example.js` and execute it using Node.js:
-
-```bash
-node example.js
-```
-
-Make sure to have the `saksh-wallet` package installed and MongoDB running before executing the example. Adjust the MongoDB connection string as necessary for your environment.
-
-
-
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## Contributing
-
-Contributions are welcome! Please open an issue or submit a pull request.
-
-   
+### License
+This project is licensed under the MIT License. See the LICENSE file for details.
+ 
 ### SUPPORT
 susheel2339 @ gmail.com

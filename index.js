@@ -1,21 +1,47 @@
 const EventEmitter = require('events');
 const mongoose = require('mongoose');
 const Transaction = require('./models/Transaction');
-const WalletUser = require('./models/WalletUser');
+//const WalletUser = require('./models/WalletUser');
 
-const defaultConfig = require('./config/config');
+
 const RecurringPayment = require('./models/RecurringPayment');
 
+
+const mongoose = require('mongoose');
+
+const walletUserSchema = new mongoose.Schema({
+    userId: { type: String, required: true, unique: true },
+    balances: { type: Map, of: Number, default: {} },
+    dailyLimit: { type: Number, default: 1000 }, // Example daily limit
+    dailyTotal: { type: Number, default: 0 },
+    lastTransactionDate: { type: Date, default: Date.now },
+}, { versionKey: 'version' });
+
+const WalletUser = mongoose.model('WalletUser', walletUserSchema);
 
 
 
 class Wallet extends EventEmitter {
-    constructor(userModel = WalletUser, config = defaultConfig) {
+    constructor(userModel = WalletUser) {
         super();
         this.User = userModel;
-        this.config = config;
 
-        this.adminUserId = config.adminUserId;
+
+        this.nolimit = false;
+
+        this.adminUserId = "sakshwallet";
+
+    }
+    async sakshSetAdmin(adminUserId) {
+        this.adminUserId = adminUserId;
+
+    }
+
+
+
+    async sakshSetLimit(nolimit) {
+        this.nolimit = nolimit;
+
 
     }
 
@@ -47,13 +73,26 @@ class Wallet extends EventEmitter {
                 user = new this.User({ userId });
             }
 
-            await this.updateDailyLimit(user, amount);
+            // Check if the user has the daily limit enabled
+            if (!this.nolimit && user.applyDailyLimit) {
+                await this.updateDailyLimit(user, amount);
+            }
 
-            if (type === 'debit' && (!user.balances.has(currency) || user.balances.get(currency) < amount)) {
+            // Use the getBalance function to check for sufficient funds
+            const currentBalance = await this.getBalance(userId, currency);
+            if (type === 'debit' && currentBalance < amount) {
                 throw new Error('Insufficient funds');
             }
 
-            const newBalance = type === 'credit' ? (user.balances.get(currency) || 0) + amount : (user.balances.get(currency) || 0) - amount;
+            let newBalance;
+            if (type === 'credit') {
+                newBalance = currentBalance + amount;
+            } else if (type === 'debit') {
+                newBalance = currentBalance - amount;
+            } else {
+                throw new Error('Invalid transaction type');
+            }
+
             user.balances.set(currency, newBalance);
             await user.save({ session });
 
@@ -80,13 +119,17 @@ class Wallet extends EventEmitter {
                 date: new Date(),
             });
 
-            return user.balances.get(currency);
+            return newBalance;
         } catch (error) {
             await session.abortTransaction();
             session.endSession();
             throw error;
         }
     }
+
+
+
+
 
     async credit(userId, amount, currency, description, referenceNumber) {
         return this.updateBalance(userId, amount, currency, 'credit', description, referenceNumber);
@@ -97,16 +140,6 @@ class Wallet extends EventEmitter {
     }
 
 
-    calculateFee(amount) {
-        for (const tier of this.feeStructure.tiers) {
-            if (amount >= tier.minAmount && amount <= tier.maxAmount) {
-                return (amount * tier.feePercentage) / 100;
-            }
-        }
-        return (amount * this.feeStructure.default) / 100;
-    }
-
-
 
 
     async sakshTransferFunds(fromUserId, toUserId, amount, currency, description, referenceNumber, customFeeCallback = null) {
@@ -114,16 +147,28 @@ class Wallet extends EventEmitter {
         session.startTransaction();
 
         try {
-            const feeAmount = this.sakshCalculateFee(amount, customFeeCallback);
+            let feeAmount = 0;
+            if (customFeeCallback) {
+                feeAmount = customFeeCallback(amount);
+            }
             const totalDebitAmount = amount + feeAmount;
 
-            await this.debit(fromUserId, totalDebitAmount, currency, `${description} (including fee)`, referenceNumber);
-            await this.credit(toUserId, amount, currency, description, referenceNumber);
-            await this.credit(this.adminUserId, feeAmount, currency, `Transfer fee from ${fromUserId} to ${toUserId}`, referenceNumber);
+            // Debit the total amount (including fee if applicable) from the sender
+            await this.debit(fromUserId, totalDebitAmount, currency, `${description}${feeAmount > 0 ? ' (including fee)' : ''}`, referenceNumber);
 
+            // Credit the amount to the receiver
+            await this.credit(toUserId, amount, currency, description, referenceNumber);
+
+            // Credit the fee amount to the admin user if a fee was applied
+            if (feeAmount > 0) {
+                await this.credit(this.adminUserId, feeAmount, currency, `Transfer fee from ${fromUserId} to ${toUserId}`, referenceNumber);
+            }
+
+            // Commit the transaction
             await session.commitTransaction();
             session.endSession();
 
+            // Emit a transfer event
             this.emit('transfer', {
                 fromUserId,
                 toUserId,
@@ -138,14 +183,12 @@ class Wallet extends EventEmitter {
 
             return { fromUserId, toUserId, amount, currency, feeAmount, adminUserId: this.adminUserId };
         } catch (error) {
+            // Abort the transaction in case of an error
             await session.abortTransaction();
             session.endSession();
             throw error;
         }
     }
-
-
-
 
     async getBalance(userId, currency) {
         let user = await this.User.findOne({ userId });
@@ -290,6 +333,5 @@ class Wallet extends EventEmitter {
 }
 
 module.exports = {
-    Wallet,
-    WalletUser
+    Wallet
 }
